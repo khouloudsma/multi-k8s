@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deployment
+spec: 
+  replicas: 1
+  selector:
+    matchLabels:
+      compnent: postgres
+  #decicated for pod create with this file
+  template:
+    metadata:
+      labels:
+        compnent: postgres
+    spec:
+      #la section volume pour lier au fichier database-persistent-volume-calim afin d'avoir le stockage déclarer dans le fichier
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: database-persistent-volume-claim
+      containers:
+        - name: postgres
+          image: postgres
+          ports:
+            - containerPort: 5432
+           #declarer comment le volume peut etre utiliser à l'intéreiru de container 
+          volumeMounts:
+            #il faut volume name et volumeMount name are identical
+            - name: postgres-storage
+              #where inside the container this storage should be made available
+              #mountPath: /var/lib/postgresql/data 
+              mountPath: C:/ 
+              #any data inside the container that's stored inside of mountpath is ging to be stored inside a folder called postgres
+              subPath: postgres
+          env:
+            - name: PGPASSWORD
+              valueFrom: 
+                secretKeyRef:
+                  name: pgpassword
+                  key: PGPASSWORD
+
+
+
